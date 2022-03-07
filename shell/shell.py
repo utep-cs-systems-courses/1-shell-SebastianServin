@@ -1,5 +1,6 @@
 #! /usr/bin/python3
 
+from fileinput import close
 import os, sys, re
 
 # Returns true if I can be converted to an integer.
@@ -15,17 +16,17 @@ def runExit(val):
 
     # No exit code given
     if len(val) == 1:
-        os.write(1, ("Terminating now with exit code %d\n" %0).encode())
+        os.write(2, ("Terminating now with exit code %d\n" %0).encode())
         sys.exit(0)
     
     # Exit code given
     else:
         exitCode = val[1]
         if isInt(exitCode):
-            os.write(1, ("Terminating now with exit code %d\n" %int(exitCode)).encode())
+            os.write(2, ("Terminating now with exit code %d\n" %int(exitCode)).encode())
             sys.exit(int(exitCode))
         else:
-            os.write(1, ("Invalid exit code. Exiting now with exit code 0\n").encode())
+            os.write(2, ("Invalid exit code. Exiting now with exit code 0\n").encode())
             sys.exit(0)
 
 # Runs when 'cd' is used.
@@ -38,7 +39,7 @@ def runCD(val):
         os.chdir(val[1])
         # os.write(1, ("(%s): " %os.getcwd()).encode())
     except:
-        os.write(1, ("Not a valid directory :(\n").encode())
+        os.write(2, ("Not a valid directory :(\n").encode())
 
 def execCommand(val, background):
     if background:
@@ -71,9 +72,6 @@ def execCommand(val, background):
 def runRedirect(val):
     symbol = val[len(val) - 2]
     destinationFile = val[len(val) - 1]
-
-
-    # pid = os.getpid()
 
     rc = os.fork()
 
@@ -174,20 +172,18 @@ while True:
     vals = (os.read(0,1000)).decode()
     # split val by \n
     # loop through values
-        # search for pipe in val
-        # split
-        # search for cd in val[0]
-        # search for exit in val[0]
-        # search for redirect 
-        # else run general command
-            # os.write(1, ("(%s): " %os.getcwd()).encode())
+    #     search for pipe in val
+    #     split
+    #     search for cd in val[0]
+    #     search for exit in val[0]
+    #     search for redirect 
+    #     else run general command
     vals = vals.split('\n')
     for val in vals:
         if len(val) > 0:
             unsplitString = val
             val = val.split()
             if '|' in unsplitString:
-                # runPipe(unsplitString)
                 runPipe(unsplitString)
             elif val[0] == "cd":
                 if (len(val) > 0):
@@ -203,45 +199,5 @@ while True:
                     execCommand(unsplitString, True)
                 else:
                     execCommand(unsplitString, False)
-    exit()
-            
-        
-while True:
-    # os.write(1, ("(%s): " %os.getcwd()).encode())
-    val = (os.read(0,1000)).decode()
-    temp = val
-    vals = val.split('\n')
-    for val in vals:
-        tempVal = val
-        val = val.split()
-        if len(val) > 0:
-            if '&' in tempVal:
-                execCommand(val, True)
-            if '|' in tempVal:
-                runPipe(tempVal)
-                exit()
-            elif val[0].lower() == "exit":
-                runExit(val)
-            elif val[0].lower() == "cd":
-                runCD(val)
-            # Looks in index len(val) - 2 because that's where the '<' or '>' will be located, 
-            # without caring about the arguments of the function being called. (eg: wc shell.py > testing.txt)
-            elif val[len(val) - 2].lower() == ">" or val[len(val) - 2].lower() == "<":
-                runRedirect(val)
-                exit()
-            else:
-                # os.execve(val)
-                temp  = temp.split('\n')
-                for val in temp:
-                    if len(val) > 0:
-                        val = val.split()
-                        # print(val)
-                        execCommand(val, False)
-                exit()
-                # sucess = execCommand(val)
-                # print(sucess)
-                # if not sucess:
-                #     print('hiu')
-                #     sys.exit(1)
-                # print(val)
-                # os.write(1, ("Invalid command :(\n").encode())
+    # exit()
+    # sys.exit()
